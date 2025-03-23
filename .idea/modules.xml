@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Oitq.main.iml" filepath="$PROJECT_DIR$/.idea/modules/Oitq.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/me.aroze.Oitq.main.iml" filepath="$PROJECT_DIR$/.idea/modules/me.aroze.Oitq.main.iml" />
     </modules>
   </component>
 </project>

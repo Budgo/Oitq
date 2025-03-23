@@ -1,6 +1,5 @@
 package me.aroze.oitq.util
 
-import me.aroze.oitq.Oitq
 import me.aroze.oitq.oitq
 import org.bukkit.Location
 import kotlin.random.Random

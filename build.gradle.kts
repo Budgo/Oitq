@@ -1,10 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import java.nio.file.Path
-import java.nio.file.Paths
 
 plugins {
     kotlin("jvm") version "1.9.10"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "me.aroze"
@@ -35,6 +33,7 @@ dependencies {
     implementation("net.luckperms:api:5.4")
     implementation("org.litote.kmongo:kmongo:4.9.0")
     implementation("com.github.uwuaroze:arozeutils:d8a4f1a809")
+    implementation("fr.mrmickey:fastboard:2.1.3")
 }
 
 val targetJavaVersion = 17
@@ -61,18 +60,6 @@ tasks.named<ProcessResources>("processResources") {
     }
 }
 
-tasks.named<ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
-    archiveVersion.set("")
-    archiveBaseName.set("Oitq")
-    doLast {
-        val file = archiveFile.get().asFile
-        val target = Path.of("C:\\Users\\admin\\OneDrive\\Desktop\\Servers\\Oitq\\plugins\\Oitq.jar").toFile()
-        if (!target.exists()) target.createNewFile()
-        file.inputStream().use { input ->
-            target.outputStream().use { output ->
-                input.copyTo(output)
-            }
-        }
-    }
+tasks.shadowJar {
+    relocate("fr.mrmicky.fastboard", "me.aroze.fastboard")
 }

@@ -4,6 +4,8 @@ import me.aroze.arozeutils.kotlin.type.Randomiser
 import me.aroze.arozeutils.minecraft.generic.delay
 import me.aroze.arozeutils.minecraft.generic.timer
 import me.aroze.oitq.mm
+import me.aroze.oitq.user.UserManager.user
+import me.aroze.oitq.util.KillStreakUtil
 import me.aroze.oitq.util.MapUtil.getRandomSpawnpoint
 import net.kyori.adventure.title.Title
 import org.bukkit.Bukkit
@@ -19,6 +21,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import java.time.Duration
+import kotlin.math.roundToInt
 
 object DeathListener : Listener {
 
@@ -63,12 +66,17 @@ object DeathListener : Listener {
                 event.isCancelled = true
                 return
             }
+
             handleQuiveringDeath(attacker, victim)
+
         } else {
             if (attacker !is Player) return
             if (event.finalDamage < victim.health) return // Damage didn't result in kill.
+
             handleChoppyDeath(attacker, victim)
         }
+
+        sendKillStreak(attacker)
 
         event.setDamage(0.0)
 
@@ -85,14 +93,47 @@ object DeathListener : Listener {
 
     }
 
+    private fun handleDeathStats(killer: Player, deather: Player) {
+        killer.user.killStreak++
+        killer.user.kills++
+
+        deather.user.killStreak = 0
+        deather.user.deaths++
+    }
+
+    private fun sendKillStreak(player: Player) {
+        val kills = player.user.kills
+
+        if (kills % 5 != 0) return // ensure that we have a multiple of 5
+        if (kills < 5) return // and a meaningful killstreak (>=5)
+
+        val palette = KillStreakUtil.getUserKillStreakPalette(player.user)
+
+        Bukkit.broadcast(mm.deserialize("${palette.color}☄ ${palette.iconColor}${player.name} ${palette.iconColor}is ${palette.formattedName}"))
+        player.sendActionBar(mm.deserialize("${palette.color}☄ <#baa59b>| ${palette.iconColor}You're ${palette.formattedName}"))
+
+        for (onlinePlayer in Bukkit.getOnlinePlayers()) {
+            onlinePlayer.playSound(onlinePlayer, palette.sound, 1.0F, 1.0F)
+        }
+
+    }
+
     private fun handleChoppyDeath(killer: Player, deather: Player) {
-        Bukkit.broadcast(mm.deserialize("<#ff6378>☠ <#ffb3bf>${deather.name} <#e3bac0>got chopped up by <#ffb3bf>${killer.name}"))
+        handleDeathStats(killer, deather)
+
+        Bukkit.broadcast(mm.deserialize("<#ff6378>☠ <#ffb3bf>${deather.name} <#e3bac0>got chopped up by <#ffb3bf>${killer.name} <#c8cbfc><b>${killer.user.killStreak}"))
         killer.sendActionBar(mm.deserialize("<#ffb899>\uD83D\uDDE1 <#baa59b>| <#ffdac9>You've choppied ${deather.name}"))
+
     }
 
     private fun handleQuiveringDeath(killer: Player, deather: Player) {
-        Bukkit.broadcast(mm.deserialize("<#ff6378>☠ <#ffb3bf>${deather.name} <#e3bac0>got quivered by <#ffb3bf>${killer.name}"))
+        handleDeathStats(killer, deather)
+
+        val distance = (killer.location).distance(deather.location)
+
+        Bukkit.broadcast(mm.deserialize("<#ff6378>☠ <#ffffff>[${distance.roundToInt()}<#ffffff>m] <#ffb3bf>${deather.name} <#e3bac0>got quivered by <#ffb3bf>${killer.name} <#c8cbfc><b>${killer.user.killStreak}"))
         killer.sendActionBar(mm.deserialize("<#ffb899>\uD83C\uDFF9 <#baa59b>| <#ffdac9>You've quivered ${deather.name}"))
+
     }
 
     fun resetPlayer(player: Player, resetGamemode: Boolean = true, giveBackInventory: Boolean = true) {
